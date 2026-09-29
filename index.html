@@ -649,7 +649,20 @@ async function fetchSharedData() {
   try {
     const res = await fetch(APPS_SCRIPT_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
+    let data = await res.json();
+
+    // --- Filet de sécurité : si les données stockées sont encore au format
+    // corrompu { token: ..., data: [...] } au lieu d'un tableau propre,
+    // on extrait automatiquement le tableau et on resauvegarde une version propre.
+    if (data && !Array.isArray(data) && Array.isArray(data.data)) {
+      console.warn('Format corrompu détecté (objet avec token) — extraction automatique de data.data');
+      data = data.data;
+      renderAll(data.length ? data : RAYONS_DEFAULT);
+      await saveData();
+      setSync('ok', 'À jour · partagé avec tous — ' + new Date().toLocaleTimeString('fr-FR'));
+      return;
+    }
+
     if (Array.isArray(data) && data.length) {
       renderAll(data);
     } else {
