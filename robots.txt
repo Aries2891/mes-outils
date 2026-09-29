@@ -1,2 +1,2 @@
 User-agent: *
-Disallow: /tract.html
+Disallow: /rapport.html
