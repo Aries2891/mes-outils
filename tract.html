@@ -164,12 +164,23 @@ async function dechiffrer(motDePasse) {
   }
 
   // Cache local : si les donnees dechiffrees correspondent au fichier actuel
-  // (meme cle de chiffrement), pas besoin de retaper le mot de passe.
+  // (meme cle de chiffrement) ET que le cache n'est pas trop vieux, pas besoin
+  // de retaper le mot de passe. Au-dela de la duree de validite, le mot de
+  // passe est redemande meme si les donnees n'ont pas change.
   // On attend que la page soit entierement chargee (window.demarrerApp doit
   // deja exister) avant de tenter le demarrage automatique depuis le cache.
+  var DUREE_CACHE_MS = 2 * 60 * 60 * 1000; // 2 heures
+
   function essayerCache(){
     try {
       if (localStorage.getItem('tractCacheKey') === ENC_BLOB.data) {
+        var horodatage = parseInt(localStorage.getItem('tractCacheDate') || '0', 10);
+        if (!horodatage || (Date.now() - horodatage) > DUREE_CACHE_MS) {
+          localStorage.removeItem('tractCacheKey');
+          localStorage.removeItem('tractCacheJSON');
+          localStorage.removeItem('tractCacheDate');
+          return false;
+        }
         var cache = localStorage.getItem('tractCacheJSON');
         if (cache) {
           demarrerAvecDonnees(JSON.parse(cache));
@@ -199,6 +210,7 @@ async function dechiffrer(motDePasse) {
       try {
         localStorage.setItem('tractCacheKey', ENC_BLOB.data);
         localStorage.setItem('tractCacheJSON', JSON.stringify(d));
+        localStorage.setItem('tractCacheDate', String(Date.now()));
       } catch(e) {}
       demarrerAvecDonnees(d);
     }).catch(function(){
