@@ -165,17 +165,32 @@ async function dechiffrer(motDePasse) {
 
   // Cache local : si les donnees dechiffrees correspondent au fichier actuel
   // (meme cle de chiffrement), pas besoin de retaper le mot de passe.
-  try {
-    if (localStorage.getItem('tractCacheKey') === ENC_BLOB.data) {
-      var cache = localStorage.getItem('tractCacheJSON');
-      if (cache) {
-        demarrerAvecDonnees(JSON.parse(cache));
-        return;
+  // On attend que la page soit entierement chargee (window.demarrerApp doit
+  // deja exister) avant de tenter le demarrage automatique depuis le cache.
+  function essayerCache(){
+    try {
+      if (localStorage.getItem('tractCacheKey') === ENC_BLOB.data) {
+        var cache = localStorage.getItem('tractCacheJSON');
+        if (cache) {
+          demarrerAvecDonnees(JSON.parse(cache));
+          return true;
+        }
       }
-    }
-  } catch(e) {}
+    } catch(e) {}
+    return false;
+  }
 
-  setTimeout(function(){ input.focus(); }, 50);
+  function initGate(){
+    if (!essayerCache()) {
+      input.focus();
+    }
+  }
+
+  if (document.readyState === 'complete') {
+    setTimeout(initGate, 50);
+  } else {
+    window.addEventListener('load', function(){ setTimeout(initGate, 50); });
+  }
 
   function tenter(){
     btn.disabled = true;
