@@ -325,6 +325,9 @@
 <script>
 const PRIORITIES = [["1. Anticipation", "Anticiper les besoins saisonniers, les tendances marché et les risques de rupture pour sécuriser l'approvisionnement des 4 magasins."], ["2. Pertinence de l'offre", "Garantir un assortiment adapté aux attentes clients et à la zone de chalandise de chaque magasin."], ["3. Gamme commune", "Harmoniser une base de gamme commune aux 4 magasins pour simplifier les achats et le merchandising."], ["4. Communication", "Être le relais d'information entre les magasins, les fournisseurs et le siège sur le thème."], ["5. Centralisation", "Centraliser les remontées terrain, les décisions gamme et les bonnes pratiques du réseau."]];
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxeXwK4NwPNO5pZCFKuYDmOPCyZOHF0ed4hmLspTamah_qchfNkCwtDhMUxupWO7Jx1/exec";
+// Jeton envoyé à chaque écriture pour empêcher un appel direct du backend sans passer par ce site.
+// Doit correspondre EXACTEMENT à SAVE_TOKEN dans le script Apps Script (fonction doPost).
+const SAVE_TOKEN = "Chefdefile@express**";
 const RAYONS_DEFAULT = JSON.parse(document.getElementById('rayons-data').textContent);
 
 const missionWheel = document.getElementById('mission-wheel');
@@ -594,9 +597,11 @@ async function saveData() {
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ token: SAVE_TOKEN, data: data })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    const result = await res.json().catch(() => ({}));
+    if (result.error) throw new Error(result.error);
     saveFailureCount = 0;
     saveBlocked = false;
     hideSaveWarning();
@@ -692,7 +697,7 @@ container.addEventListener('change', (e) => {
   }
 });
 
-const EDIT_PASSWORD = "stephox";
+const EDIT_PASSWORD = "Chefdefile@express**";
 let editUnlocked = false;
 
 function unlockEditing() {
