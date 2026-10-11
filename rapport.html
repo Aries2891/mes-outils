@@ -258,6 +258,7 @@ const SHORT_BADGE = {"b-r":"RUPT.","b-f":"FAIBLE","b-i":"AVANT","b-e":"PERF.","b
 const COLS = [
   {k:"priorite", t:"Priorité"},
   {k:"rang", t:"Rang nat."},
+  {k:"rang_mag", t:"Rang mag."},
   {k:"code", t:"Code"},
   {k:"nom", t:"Produit"},
   {k:"gamme", t:"Gamme"},
@@ -434,6 +435,7 @@ function render(){
     tr.innerHTML =
       `<td class="badge ${r.bcls}" data-label="Priorité" data-short="${SHORT_BADGE[r.bcls]||''}">${r.badge}</td>`+
       `<td data-label="Rang nat.">${r.rang}</td>`+
+      `<td data-label="Rang mag.">${r.rang_mag==null?"—":r.rang_mag}</td>`+
       `<td class="code" data-code="${r.code}" data-label="Code" title="Cliquer pour copier">${r.code}</td>`+
       `<td class="prod" data-label="Produit">${r.nom}</td>`+
       `<td data-label="Gamme">${r.gamme||""}</td>`+
