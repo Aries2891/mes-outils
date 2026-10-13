@@ -973,6 +973,7 @@ window.demarrerApp = demarrerApp;
 var PRIV={}, UNL={}, UNLPW={}; function GU(k){ if(UNL[k]) return UNL[k]; var a=((window.__DATA||{}).GRP||{})[k], b=(window.__GRPU||{})[k]; if(!a&&!b) return null; return Object.assign({},a||{},b||{}); }
 window.__grpHtml='<div class="c-wrap"><h3 style="margin:18px 0 6px">Vue groupe</h3><div style="margin:8px 0"><input type="password" class="gpw" placeholder="Mot de passe groupe" autocomplete="off" style="padding:8px;border:1px solid #c4ccd4;border-radius:6px;min-width:200px"> <button type="button" class="gbtn" style="padding:8px 14px;border:0;border-radius:6px;background:#12263a;color:#fff;font-weight:700">Ouvrir</button> <span class="gerr" style="color:#b21f2d;font-size:13px"></span></div></div>';
 window.__grpBind=function(c,cb){ var go=function(){ var pw=c.querySelector('.gpw').value; if(!pw) return; c.querySelector('.gerr').textContent='Vérification…'; decPriv((window.__DATA||{}).GRPW,pw).then(function(o){ window.__GRPU=o; cb(); },function(){ c.querySelector('.gerr').textContent='Mot de passe incorrect.'; }); }; c.querySelector('.gbtn').onclick=go; c.querySelector('.gpw').onkeydown=function(e){ if(e.key==='Enter') go(); }; };
+
 window.__fgx=function(){ return '<div class="g-nodata" style="margin-top:12px"><b>Données en attente</b> : export DocuWare des factures de frais généraux (mois, poste, fournisseur, montant HT, par magasin). Cette vue présentera ensuite chaque magasin et le groupe consolidé, sur le modèle du carburant.</div>'; };
 async function decPriv(b,pw){
   var enc=new TextEncoder(), un=function(x){return Uint8Array.from(atob(x),function(c){return c.charCodeAt(0);});};
@@ -1048,10 +1049,10 @@ function demarrerCompta(){
     h+='<h3>Points du comptable</h3><div class="g-lecture"><ul style="margin:0 0 0 18px;padding:0">'+C.notes.map(function(x){return '<li style="margin:4px 0">'+x.replace(/</g,'&lt;')+'</li>';}).join('')+'</ul></div>';
     var head=h.slice(0,p0), SYN=h.slice(p0,p1), DET=h.slice(p1,p2), PLA=h.slice(p2,p3), NOT=h.slice(p3);
     var nPlan=A.length, nRed=A.filter(function(a){return a.red;}).length;
-    var TABS=[['syn','Synthèse',''],['det','Détail',''],['plan','Plan d\'action',nPlan],['fg','Frais généraux',''],['carb','⛽ Carburant',''],['not','Comptable','']];
-    var BODY={syn:SYN,det:DET,plan:PLA,not:NOT,fg:window.__fgx(),carb:'<div id="cbbox"></div>'};
+    var TABS=[['syn','Synthèse',''],['det','Détail',''],['plan','Plan d\'action',nPlan],['fg','Frais généraux',''],['not','Comptable','']];
+    var BODY={syn:SYN,det:DET,plan:PLA,not:NOT,fg:'<div id="fgbox"></div>'};
     function paint(){ root.innerHTML=head+'<div class="v-tabs c-tabs">'+TABS.map(function(t){return '<button type="button" data-ct="'+t[0]+'" class="'+(ctab===t[0]?'on':'')+'">'+t[1]+(t[2]!==''?' <small>'+t[2]+'</small>':'')+'</button>';}).join('')+'</div>'+BODY[ctab]+'</div>';
-      root.querySelectorAll('.c-tabs button').forEach(function(b){ b.onclick=function(){ ctab=b.dataset.ct; paint(); window.scrollTo({top:0}); }; }); if(ctab==='carb') cbMount(root.querySelector('#cbbox'),[{name:m,carb:UNL[m].CARB,C:C}],false); }
+      root.querySelectorAll('.c-tabs button').forEach(function(b){ b.onclick=function(){ if(b.dataset.ct==='fg') window.__fgSub=null; ctab=b.dataset.ct; paint(); window.scrollTo({top:0}); }; }); if(ctab==='fg') window.__fgPage(root.querySelector('#fgbox'),[{name:m,carb:UNL[m].CARB,C:C}],false); }
     paint();
   }
   // ===== Carburant : vue interactive (magasin et groupe consolidé) =====
@@ -1123,8 +1124,24 @@ function demarrerCompta(){
     box.querySelectorAll('.cbp').forEach(function(b){ b.onclick=function(){ if(b.dataset.per) cbS.per=b.dataset.per; if(b.dataset.mode){ cbS.mode=b.dataset.mode; cbS.hid={}; } cbMount(box,ents,grp); }; });
     box.querySelectorAll('.cbl').forEach(function(b){ b.onclick=function(){ cbS.hid[b.dataset.k]=!cbS.hid[b.dataset.k]; cbMount(box,ents,grp); }; });
   }
+  window.__fgPage=function(box,ents,grp,repaint){
+  if(window.__fgSub==='carb'){ box.innerHTML='<button type="button" class="fgback" style="padding:6px 12px;border:1px solid #c4ccd4;border-radius:999px;background:#fff;font:inherit;font-weight:700;cursor:pointer;margin:8px 0">← Frais généraux</button><h3 style="margin:6px 0">⛽ Carburant</h3><div id="cbbox"></div>'; box.querySelector('.fgback').onclick=function(){ window.__fgSub=null; window.__fgPage(box,ents,grp,repaint); }; cbMount(box.querySelector('#cbbox'),ents,grp); return; }
+  var ser=cbSeries(ents,'cat'), tot=0; ser.forEach(function(x){ tot+=cbTot(x.v); });
+  var live=ents.some(function(e){ return e.carb&&!e.carb.vide; });
+  var bub=function(ic,t,k,sub,on,id){ return '<button type="button" '+(on?'class="fgb" data-sub="'+id+'" ':'disabled ')+'style="text-align:left;font:inherit;cursor:'+(on?'pointer':'default')+';border:1px solid '+(on?'#8a5a2b':'#d5dbe1')+';border-radius:18px;padding:16px 18px;min-height:118px;background:'+(on?'#fff':'#f4f6f8')+';color:'+(on?'#12263a':'#8995a1')+';box-shadow:'+(on?'0 2px 8px rgba(18,38,58,.12)':'none')+'"><div style="font-size:26px;line-height:1">'+ic+'</div><div style="font-weight:800;font-size:16px;margin:8px 0 2px">'+t+'</div><div style="font-size:20px;font-weight:800">'+k+'</div><div style="font-size:12.5px;margin-top:2px;color:'+(on?'#5b6b7a':'#8995a1')+'">'+sub+'</div></button>'; };
+  var h='<h3 style="margin:14px 0 4px">Frais généraux</h3><div class="sub" style="margin-bottom:10px;color:#5b6b7a">Choisis un poste.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px">'
+   +bub('⛽','Carburant',live?E(tot):'—',live?'net sur 12 mois':'données en attente',true,'carb')
+   +bub('⚡','Énergie','—','à venir (DocuWare)',false)
+   +bub('🛡️','Assurances','—','à venir (DocuWare)',false)
+   +bub('📞','Télécoms','—','à venir (DocuWare)',false)
+   +bub('🔧','Entretien','—','à venir (DocuWare)',false)+'</div>'
+   +'<div class="g-nodata" style="margin-top:14px"><b>Données en attente</b> : export DocuWare des factures de frais généraux (mois, poste, fournisseur, montant HT, par magasin) pour remplir les autres postes.</div>';
+  box.innerHTML=h; box.querySelectorAll('.fgb').forEach(function(b){ b.onclick=function(){ window.__fgSub=b.dataset.sub; window.__fgPage(box,ents,grp,repaint); window.scrollTo({top:0}); }; });
+};
+
+
   window.__comptaRender=function(m){
-    if(window.__cbLast!==m){ cbS.hid={}; cbS.per='12'; cbS.mode='cat'; window.__cbLast=m; }
+    if(window.__cbLast!==m){ window.__fgSub=null; cbS.hid={}; cbS.per='12'; cbS.mode='cat'; window.__cbLast=m; }
     if(m==='GROUPE'||m==='COMPARATIF'){
       if(!window.__GRPU){ root.innerHTML=window.__grpHtml; window.__grpBind(root,function(){ window.__comptaRender(m); }); return; }
       var rows=Object.keys(PRIV).filter(function(k){ return k!=='Creation'; }).map(function(k){ var o=GU(k)&&GU(k).COMPTA; if(!o) return '<tr><td><b>'+k+'</b></td><td colspan="5" style="text-align:left;color:#5b6b7a">Pas encore de comptabilité pour ce magasin</td></tr>';
@@ -1132,11 +1149,11 @@ function demarrerCompta(){
         return '<tr><td><b>'+k+'</b></td><td>'+E(R.ca.real)+'</td><td class="'+cls(f(R.ca))+'">'+P(100*f(R.ca)/R.ca.bud)+'</td><td>'+(100*R.marge.real/R.ca.real).toLocaleString('fr-FR',{maximumFractionDigits:2})+' %</td><td class="'+cls(f(R.ebe))+'">'+SE(f(R.ebe))+'</td><td class="'+cls(f(R.rai))+'">'+SE(f(R.rai))+'</td></tr>'; }).join('');
       var gsyn='<div class="c-sc"><table class="c-tbl"><thead><tr><th>Magasin</th><th>CA HT</th><th>CA vs budget</th><th>Taux de marge</th><th>EBE vs budget</th><th>Résultat avant impôt vs budget</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="sub" style="margin-top:8px;color:#5b6b7a;font-size:13px"></div>';
       var gt=window.__gt||'syn', FGX=window.__fgx();
-      function pg(){ var lock=[]; root.innerHTML='<div class="c-wrap"><h2>Compte de résultat · Groupe</h2><div class="v-tabs c-tabs"><button type="button" data-gt="syn" class="'+(gt==='syn'?'on':'')+'">Synthèse</button><button type="button" data-gt="fg" class="'+(gt==='fg'?'on':'')+'">Frais généraux</button><button type="button" data-gt="carb" class="'+(gt==='carb'?'on':'')+'">⛽ Carburant</button></div>'+(gt==='syn'?gsyn:gt==='fg'?FGX:(lock.length?'<div class="sub" style="margin:6px 0;color:#5b6b7a">Magasins verrouillés, non comptés : '+lock.map(function(k){ return CBL[k]||k; }).join(', ')+'.</div>':'')+'<div id="cbbox"></div>')+'</div>';
-        root.querySelectorAll('.c-tabs button').forEach(function(b){ b.onclick=function(){ gt=window.__gt=b.dataset.gt; pg(); }; });
-        if(gt==='carb') cbMount(root.querySelector('#cbbox'),Object.keys(PRIV).map(function(k){ return {name:k,carb:GU(k)&&GU(k).CARB,C:GU(k)&&GU(k).COMPTA}; }),true); }
+      function pg(){ var lock=[]; root.innerHTML='<div class="c-wrap"><h2>Compte de résultat · Groupe</h2><div class="v-tabs c-tabs"><button type="button" data-gt="syn" class="'+(gt==='syn'?'on':'')+'">Synthèse</button><button type="button" data-gt="fg" class="'+(gt==='fg'?'on':'')+'">Frais généraux</button></div>'+(gt==='syn'?gsyn:gt==='fg'?'<div id="fgbox"></div>':(lock.length?'<div class="sub" style="margin:6px 0;color:#5b6b7a">Magasins verrouillés, non comptés : '+lock.map(function(k){ return CBL[k]||k; }).join(', ')+'.</div>':'')+'<div id="cbbox"></div>')+'</div>';
+        root.querySelectorAll('.c-tabs button').forEach(function(b){ b.onclick=function(){ if(b.dataset.gt==='fg') window.__fgSub=null; gt=window.__gt=b.dataset.gt; pg(); }; });
+        if(gt==='fg') window.__fgPage(root.querySelector('#fgbox'),Object.keys(PRIV).map(function(k){ return {name:k,carb:GU(k)&&GU(k).CARB,C:GU(k)&&GU(k).COMPTA}; }),true); }
       pg(); return; }
-    ouvrirPriv(m,root,function(){ var C=UNL[m].COMPTA; if(!C){ root.innerHTML='<div class="c-wrap"><h2>Compte de résultat · '+(CBL[m]||m)+'</h2>'+(m==='Creation'?'':'<div class="g-nodata"><b>Pas de données comptables pour '+(CBL[m]||m)+'.</b></div>')+'<h3>Frais généraux</h3>'+window.__fgx()+'<h3>⛽ Carburant</h3><div id="cbbox"></div></div>'; cbMount(root.querySelector('#cbbox'),[{name:m,carb:UNL[m].CARB,C:null}],false); return; } draw(m,C); });
+    ouvrirPriv(m,root,function(){ var C=UNL[m].COMPTA; if(!C){ root.innerHTML='<div class="c-wrap"><h2>Compte de résultat · '+(CBL[m]||m)+'</h2>'+(m==='Creation'?'':'<div class="g-nodata"><b>Pas de données comptables pour '+(CBL[m]||m)+'.</b></div>')+'<div id="fgbox"></div></div>'; window.__fgPage(root.querySelector('#fgbox'),[{name:m,carb:UNL[m].CARB,C:null}],false); return; } draw(m,C); });
   };
 }
 
