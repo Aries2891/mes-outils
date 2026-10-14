@@ -1193,10 +1193,10 @@ function demarrerCompta(){
   function fgT(a){ return cbSum(a,fgR()); }
   function fgN(a){ return cbSum(a,fgR()); }
   function fgML(i){ var m=i%12; return CBM[m]+' '+(i>=12?2026:(m<3?2025:2026)); }
-  function fgPL(r){ return (r[0]===0&&r[1]===11)?'12 mois':(r[0]===r[1]?fgML(r[0]):fgML(r[0])+' à '+fgML(r[1])); }
+  function fgPL(r){ return (r[0]===0&&r[1]===11)?'exercice N-1 (oct. 2025 à sept. 2026)':(r[0]===r[1]?fgML(r[0]):fgML(r[0])+' à '+fgML(r[1])); }
   function fgLast(ents){ var L=11; ents.forEach(function(e){ if(e.fg) e.fg.R.forEach(function(r){ if(r[0]>L) L=r[0]; }); }); return L; }
   function fgPerBar(ents){ var r=fgR(), L=fgLast(ents), key=r.join(',');
-    var P=[]; P.push(['Exercice en cours',[12,Math.max(12,L)]],['Mois en cours',[Math.max(12,L),Math.max(12,L)]],['Mois précédent',[Math.max(0,Math.max(12,L)-1),Math.max(0,Math.max(12,L)-1)]]);
+    var P=[]; P.push(['Exercice en cours',[12,Math.max(12,L)]],['Exercice N-1',[0,11]],['Mois en cours',[Math.max(12,L),Math.max(12,L)]],['Mois précédent',[Math.max(0,Math.max(12,L)-1),Math.max(0,Math.max(12,L)-1)]]);
     var opt=function(sel){ var o=''; for(var i=0;i<=L;i++) o+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+fgML(i)+(i>11?' (en cours)':'')+'</option>'; return o; };
     return '<div class="fgper" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 12px"><b style="font-size:13px">Période</b>'+P.map(function(p){ return '<button type="button" class="cbp fgpr'+(p[1].join(',')===key?' on':'')+'" data-r="'+p[1].join(',')+'">'+p[0]+'</button>'; }).join('')+'<span style="font-size:13px;margin-left:8px">du</span><select class="fgrf" style="font:inherit;padding:3px 6px">'+opt(r[0])+'</select><span style="font-size:13px">au</span><select class="fgrt" style="font:inherit;padding:3px 6px">'+opt(r[1])+'</select></div>'; }
   function fgPerBind(box,again){ box.querySelectorAll('.fgpr').forEach(function(b){ b.onclick=function(){ window.__fgR=b.dataset.r.split(',').map(Number); again(); }; });
@@ -2083,7 +2083,7 @@ function demarrerGestion(G){
   window.demarrerApp=function(D){ window.__DATA=D; PRIV=D.PRIV||{}; window.__MAIL_TOKEN=((D.CONFIG&&D.CONFIG.mail)||''); window.__WRITE_TOKEN=((D.CONFIG&&D.CONFIG.write)||''); window.__CONTACTS={}; window.__SYNC_URL=(D.CONFIG||{}).sync||''; _t(D); try{ demarrerGestion(D.GESTION); }catch(e){ console.error(e); } try{ pendingBubble(D); }catch(e){} try{ autoLock(); }catch(e){} try{ demarrerVisite({}); demarrerCompta(); }catch(e){ console.error(e); } if(window.__navInit) window.__navInit(); };
 })();
 </script>
-<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 15/10 00:55 · ↻</div>
+<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 15/10 01:15 · ↻</div>
 <script>(function(){var t=document.getElementById('verTag'),B=document.querySelector('meta[name=build]');var go=function(){try{sessionStorage.setItem('keepTab',location.hash);}catch(e){} location.replace(location.pathname+'?r='+Date.now()+location.hash);};
 t.onclick=go; window.addEventListener('pageshow',function(e){ if(e.persisted) location.reload(); });
 var chk=function(){ if(!B||location.protocol==='file:') return; fetch(location.pathname+'?c='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(x){ var m=x.match(/<meta name="build" content="(\d+)"/); if(m&&m[1]!==B.content){ t.textContent='⚠ Nouvelle version : touche ici'; t.style.cssText+=';color:#fff;background:#b21f2d;border-color:#b21f2d'; } }).catch(function(){}); };
