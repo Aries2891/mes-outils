@@ -343,6 +343,12 @@
   #appbar .mbtn{border-color:rgba(255,255,255,.9)} #appbar .mlbl b{font-size:26px}
   #pdBtn.top{font-size:14.5px!important;padding:6px 15px!important;margin:8px 12px 8px auto!important;border-radius:18px!important}
   @media(max-width:600px){ #appbar{min-height:68px} #appbar .mlbl b{font-size:21px} #pdBtn.top{font-size:13.5px!important} }
+
+  /* v3 : tailles/polices homogènes des menus */
+  #appbar .mbtn{font-size:15px;font-weight:700} #appbar .mlbl b{font-weight:800}
+  #drw .it{font-size:16px;font-weight:700;min-height:46px} #drw .sb .it{font-size:15px;font-weight:600;min-height:44px} #drw .sb .sb .it{font-size:14px;font-weight:600} #drw h4{font-size:12px}
+  .v-tabs button,.subtabs button,.v-tabs.c-tabs button{font-size:14px!important;font-weight:700;padding:8px 14px!important;line-height:1.2}
+  @media(max-width:640px){ .v-tabs.c-tabs button{padding:8px 10px!important} }
 </style>
 </head>
 <body>
@@ -465,7 +471,7 @@ async function dechiffrer(motDePasse) {
 <nav class="topnav" id="topnav">
   <button id="navGestion" type="button">Performance commerciale</button>
   <button id="navCompta" type="button">Compte de résultat</button>
-  <button id="navRH" type="button">👥 RH</button>
+  <button id="navRH" type="button">👥 Ressources humaines</button>
   <button id="navVisite" type="button">Visite magasin</button>
   <button id="navTract" class="on" type="button">Performance catalogue</button>
   <button id="navBoo" type="button" style="display:none" title="Ouvre l'outil Python Booster sur ce PC">🚀 Booster</button>
@@ -838,7 +844,7 @@ window.demarrerApp = demarrerApp;
     var b=document.getElementById('storebar'), h='';
     STORES.forEach(function(x){ h+='<button type="button" data-st="'+x[0]+'" class="'+(STORE===x[0]?'on':'')+'">'+(x[2]||x[0])+(x[1]?'<small>'+x[1]+'</small>':'')+'</button>'; });
     h+='<button type="button" data-st="GROUPE" class="grp '+(STORE==='GROUPE'?'on':'')+'">GROUPE</button>';
-    if(TOOL==='gestion') h+='<button type="button" data-st="COMPARATIF" class="grp '+(STORE==='COMPARATIF'?'on':'')+'">COMPARATIF</button>';
+    if(TOOL==='gestion') h+='<button type="button" data-st="COMPARATIF" class="grp '+(STORE==='COMPARATIF'?'on':'')+'">Démarche leader</button>';
     b.innerHTML=h; document.getElementById('topwrap').dataset.st=STORE;
     b.querySelectorAll('button').forEach(function(x){ x.onclick=function(){ STORE=x.dataset.st; try{localStorage.setItem('rapStore',STORE);}catch(e){} appliquer(); }; });
   }
@@ -1854,7 +1860,7 @@ function demarrerGestion(G){
   const tLab=m=>`${m}<small>${TYPO[m]||""}</small>`;
   function renderComp(){
     const per=(G.mags[MAGS[0]].periode||"").replace(/\s*comparé à.*/,"");
-    document.getElementById("gprogline").innerHTML=`<span class="mag">Comparatif des magasins</span><span class="nat">${per}</span>`;
+    document.getElementById("gprogline").innerHTML=`<span class="mag">Démarche leader</span><span class="nat">${per}</span>`;
     const R={}, T={}; MAGS.forEach(m=>{R[m]=rowsFor(m); T[m]=totalsFor(m,R[m]); R[m].forEach(r=>{r.share=T[m].ca>0?(r.ca||0)/T[m].ca:0;});});
     const SHARE_MIN=0.015;
     // coût d'achat des ventes -> couverture globale
@@ -1916,7 +1922,7 @@ function demarrerGestion(G){
                  ["marge","À dupliquer : le taux de marge (secondaire)","Même rayon, taux nettement meilleur ailleurs. Gain = écart de taux × CA HT du magasin en retard, sur la période.","Aller voir chez le magasin de référence : prix de vente, mix de références, remises, conditions d'achat.",x=>"≈ "+fmtE(Math.round(x/10)*10)+" de marge"],
                  ["stock","À dupliquer : la gestion du stock","Rotation du stock nettement plus rapide ailleurs. Gain = trésorerie libérée si le magasin en retard avait la rotation de la référence.","Comparer la politique de commande, les quantités mini et l'assortiment avec le magasin de référence.",x=>"≈ "+fmtE(Math.round(x/1000)*1000)+" de stock"]];
     let n3=0; h+=`<h2>3. Ce qu'un magasin fait mieux : à dupliquer</h2>`;
-    let txt=`COMPARATIF MAGASINS — ${per}\n`;
+    let txt=`DÉMARCHE LEADER — ${per}\n`;
     blocs.forEach(b=>{ const arr=rec[b[0]].sort((x,y)=>y.gain-x.gain).slice(0,8); if(!arr.length) return; n3+=arr.length;
       h+=`<h3 style="margin:14px 0 2px;font-size:15px">${b[1]}</h3><div class="sub">${b[2]} ${b[3]}</div><div class="scroll"><table><thead><tr><th>Rayon</th><th>Magasin de référence</th><th>Magasin à aligner</th><th>Constat</th><th>Gain estimé</th><th>Reproductibilité</th></tr></thead><tbody>`+
         arr.map(a=>`<tr><td class="lab">${a.nom}</td><td class="best">${a.lead}</td><td class="worst">${a.lag}</td><td>${a.det}</td><td><b>${b[4](a.gain)}</b></td><td>${rep(a.lead,a.lag)}</td></tr>`).join("")+`</tbody></table></div>`;
@@ -2063,7 +2069,7 @@ function demarrerGestion(G){
       `Seuils d'alerte : CA en chute ≤ ${SEUIL_CHUTE_CA} € et ≤ -10 %, passages ≤ -5 %, panier ≤ ${SEUIL_PANIER} %, taux ≤ ${SEUIL_CHUTE_PTS} pts, perte de marge ≥ ${SEUIL_PERTE_EUR} €, surstock = rotation ≥ ${SEUIL_COUV_J} j avec CA en baisse et stock ≥ 50 000 €. Les lignes à CA négatif (ex. Produits Génériques) sont signalées « à ignorer ». Données lues depuis l'export Booster (vue Nomenclature).`;
   }
   const names=MAGS.length>1?MAGS.concat(["GROUPE","COMPARATIF"]):MAGS;
-  document.getElementById("gtabs").innerHTML=names.map(n=>`<button data-m="${n}" class="${(n==="GROUPE"||n==="COMPARATIF")?"grp":(MAGCLS[n]||"")}" title="${TYPO[n]||""}">${n}</button>`).join("");
+  document.getElementById("gtabs").innerHTML=names.map(n=>`<button data-m="${n}" class="${(n==="GROUPE"||n==="COMPARATIF")?"grp":(MAGCLS[n]||"")}" title="${TYPO[n]||""}">${n==="COMPARATIF"?"Démarche leader":(n==="GROUPE"?"Groupe":n)}</button>`).join("");
   document.querySelectorAll("#gtabs button").forEach(b=>b.onclick=()=>{cur=b.dataset.m;filtre=null;render();});
   (function(){
     const tb=document.getElementById("gtbl"), btn=document.getElementById("gtogsec");
@@ -2110,7 +2116,7 @@ function demarrerGestion(G){
   window.demarrerApp=function(D){ window.__DATA=D; PRIV=D.PRIV||{}; window.__MAIL_TOKEN=((D.CONFIG&&D.CONFIG.mail)||''); window.__WRITE_TOKEN=((D.CONFIG&&D.CONFIG.write)||''); window.__CONTACTS={}; window.__SYNC_URL=(D.CONFIG||{}).sync||''; _t(D); try{ demarrerGestion(D.GESTION); }catch(e){ console.error(e); } try{ pendingBubble(D); }catch(e){} try{ autoLock(); }catch(e){} try{ demarrerVisite({}); demarrerCompta(); }catch(e){ console.error(e); } if(window.__navInit) window.__navInit(); };
 })();
 </script>
-<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 14/10 16:11 · ↻</div>
+<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 14/10 16:36 · ↻</div>
 <script>(function(){var t=document.getElementById('verTag'),B=document.querySelector('meta[name=build]');var go=function(){try{sessionStorage.setItem('keepTab',location.hash);}catch(e){} location.replace(location.pathname+'?r='+Date.now()+location.hash);};
 t.onclick=go; window.addEventListener('pageshow',function(e){ if(e.persisted) location.reload(); });
 var chk=function(){ if(!B||location.protocol==='file:') return; fetch(location.pathname+'?c='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(x){ var m=x.match(/<meta name="build" content="(\d+)"/); if(m&&m[1]!==B.content){ t.textContent='⚠ Nouvelle version : touche ici'; t.style.cssText+=';color:#fff;background:#b21f2d;border-color:#b21f2d'; } }).catch(function(){}); };
@@ -2123,7 +2129,9 @@ chk(); document.addEventListener('visibilitychange',function(){ if(!document.hid
   tw.insertBefore(ab,tw.firstChild);
   var vt=document.getElementById('verTag'); if(vt) ab.appendChild(vt);
   var drw=document.getElementById('drw'), body=document.getElementById('drwb');
-  function txt(b){ var c=b.cloneNode(true); c.querySelectorAll('small').forEach(function(x){ x.remove(); }); return c.textContent.replace(/\s+/g,' ').trim(); }
+  function txt(b){ var c=b.cloneNode(true); c.querySelectorAll('small').forEach(function(x){ x.remove(); }); var t=c.textContent.replace(/\s+/g,' ').trim(); return t==='GROUPE'?'Groupe':t; }
+  var ICO={'Performance commerciale':'📊','Compte de résultat':'🧾','Frais généraux':'⛽','Visite magasin':'🏬','Performance catalogue':'📦','Démarche leader':'🏆','Synthèse':'📈',"Plan d'action":'✅'};
+  function ic(t){ return ICO[t]?ICO[t]+' '+t:t; }
   function vis(b){ return b.style.display!=='none'; }
   function cur(){ var s=document.querySelector('#storebar button.on'), n=document.querySelector('#topnav button.on'); return [s?txt(s):'', n?txt(n):'']; }
   function lbl(){ var c=cur(); ab.querySelector('b').textContent=c[0]||'Menu'; ab.querySelector('span').textContent=(onFG&&onFG())?'Frais généraux':c[1]; }
@@ -2137,19 +2145,22 @@ chk(); document.addEventListener('visibilitychange',function(){ if(!document.hid
   function wantFG(){ var n=0; clearInterval(wantT); wantT=setInterval(function(){ var b=fgBtn(); n++; if(b){ clearInterval(wantT); if(!b.classList.contains('on')) b.click(); setTimeout(lbl,200); } else if(n>40) clearInterval(wantT); },300); }
   function build(){
     var h='', N=document.querySelectorAll('#topnav button'), SB=[].slice.call(document.querySelectorAll('#storebar button')); 
+    var CP=SB.filter(function(b){return b.dataset.st==='COMPARATIF';})[0]; SB=SB.filter(function(b){return b.dataset.st!=='COMPARATIF';}); var onC=!!(CP&&CP.classList.contains('on'));
     SB.sort(function(a,b){ var i=ORD.indexOf(a.dataset.st), j=ORD.indexOf(b.dataset.st); return (i<0?99:i)-(j<0?99:j); });
-    SB.forEach(function(b){ var on=b.classList.contains('on'), si=[].indexOf.call(document.querySelectorAll('#storebar button'),b);
+    SB.forEach(function(b){ var on=b.classList.contains('on')&&!onC, open_=on||(onC&&b.dataset.st==='GROUPE'), si=[].indexOf.call(document.querySelectorAll('#storebar button'),b);
       h+='<button type="button" class="it'+(on?' on':'')+'" data-k="s'+si+'"><i style="background:'+(COL[b.dataset.st]||'#9aa5b1')+'"></i>'+txt(b)+'</button>';
-      if(on){ h+='<div class="sb">'; N.forEach(function(n,j){ if(!vis(n)) return; var no=n.classList.contains('on'), isC=(n.id==='navCompta'), fgOn=isC&&no&&onFG();
-          h+='<button type="button" class="it'+((no&&!fgOn)?' on':'')+'" data-k="n'+j+'">'+txt(n)+'</button>';
-          if(no&&!fgOn){ var S=subs(); if(S.length){ h+='<div class="sb">'; S.forEach(function(x,q){ h+='<button type="button" class="it'+(x.classList.contains('on')?' on':'')+'" data-k="t'+q+'">'+txt(x)+'</button>'; }); h+='</div>'; } }
-          if(isC) h+='<button type="button" class="it'+(fgOn?' on':'')+'" data-k="f0">Frais généraux</button>';
+      if(open_){ h+='<div class="sb">'; N.forEach(function(n,j){ if(!vis(n)) return; var no=n.classList.contains('on')&&!onC, isC=(n.id==='navCompta'), fgOn=isC&&no&&onFG();
+          h+='<button type="button" class="it'+((no&&!fgOn)?' on':'')+'" data-k="n'+j+'">'+ic(txt(n))+'</button>';
+          if(no&&!fgOn){ var S=subs(); if(S.length){ h+='<div class="sb">'; S.forEach(function(x,q){ h+='<button type="button" class="it'+(x.classList.contains('on')?' on':'')+'" data-k="t'+q+'">'+ic(txt(x))+'</button>'; }); h+='</div>'; } }
+          if(isC) h+='<button type="button" class="it'+(fgOn?' on':'')+'" data-k="f0">⛽ Frais généraux</button>';
         });
+        if(b.dataset.st==='GROUPE') h+='<button type="button" class="it'+(onC?' on':'')+'" data-k="d0">🏆 Démarche leader</button>';
         h+='</div>'; } });
     body.innerHTML=h;
-    body.querySelectorAll('.it').forEach(function(it){ it.onclick=function(){ var k=it.dataset.k, i=+k.slice(1), el; clearInterval(wantT);
+    body.querySelectorAll('.it').forEach(function(it){ it.onclick=function(){ var k=it.dataset.k, i=+k.slice(1), el; clearInterval(wantT); if(it.classList.contains('on')){ close(); window.scrollTo({top:0}); return; }
       if(k[0]==='s'){ el=document.querySelectorAll('#storebar button')[i]; if(el) el.click(); setTimeout(function(){ lbl(); build(); },350); }
       else if(k[0]==='n'){ el=document.querySelectorAll('#topnav button')[i]; if(el) el.click(); setTimeout(function(){ lbl(); if(subs().length) build(); else close(); window.scrollTo({top:0}); },350); }
+      else if(k[0]==='d'){ var g=[].filter.call(document.querySelectorAll('#storebar button'),function(x){return x.dataset.st==='GROUPE';})[0], ng=document.getElementById('navGestion'); if(g&&!g.classList.contains('on')) g.click(); if(ng&&!ng.classList.contains('on')) ng.click(); var tries=0, tm=setInterval(function(){ var c=[].filter.call(document.querySelectorAll('#storebar button'),function(x){return x.dataset.st==='COMPARATIF';})[0]; tries++; if(c){ clearInterval(tm); c.click(); setTimeout(function(){ lbl(); close(); window.scrollTo({top:0}); },300); } else if(tries>20) clearInterval(tm); },150); }
       else if(k[0]==='f'){ var c=document.getElementById('navCompta'); if(c&&!c.classList.contains('on')) c.click(); setTimeout(function(){ wantFG(); close(); window.scrollTo({top:0}); },350); }
       else { el=subs()[i]; if(el) el.click(); close(); window.scrollTo({top:0}); }
     }; });
