@@ -1247,7 +1247,20 @@ function fgAcl(box,ents,back,mode){ var L=fgAclList(ents,mode), sel={}; try{ sel
   box.querySelectorAll('.aclS').forEach(function(s){ s.onchange=function(){ var x=L[+s.dataset.i]; if(s.value&&s.value!==x.p) sel[x.n]=s.value; else delete sel[x.n]; save(); upd(); }; });
   box.querySelector('.aclDl').onclick=function(){ var o=diff(); if(!Object.keys(o).length){ alert('Aucune modification.'); return; } var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'})); a.download='classement_ajouts.json'; document.body.appendChild(a); a.click(); a.remove(); };
 }
-window.__fgPage=function(box,ents,grp,repaint){
+function fgCompta(ents){ var rows=[], per='';
+    ents.forEach(function(e){ if(!e.C||!e.fg) return; var R={}; e.C.rows.forEach(function(x){ R[x.k]=x; }); if(!R.ext) return; per=per||e.C.periode||'';
+      var m=fgZ(), XC={'Investissements & agencement':1,'Weldom ristournes':1}; e.fg.R.forEach(function(r){ if(!XC[e.fg.P[r[1]]]) m[r[0]]+=r[3]; }); rows.push({n:e.name,ext:R.ext,m:m}); });
+    if(!rows.length) return '';
+    var M=['oct.','nov.','déc.','janv.','févr.','mars','avr.','mai','juin','juil.','août'], pp=function(v){ return v==null?'—':(v>=0?'+':'')+(Math.round(v*10)/10).toLocaleString('fr-FR')+' %'; };
+    var h='<h3 style="margin:18px 0 4px">Lien avec la comptabilité · charges externes</h3><div class="sub" style="color:#5b6b7a;margin-bottom:8px">Exercice du 01/10 au 30/09. Comptabilité (Sage) cumulée '+per+', comparée aux factures DocuWare sur la même période, par date de facture (hors investissements et ristournes Weldom, qui ne sont pas des charges externes).</div>';
+    h+='<div class="c-sc"><table class="c-tbl"><thead><tr><th>Magasin</th><th>Charges externes compta</th><th>Budget</th><th>N-1</th><th>vs N-1</th><th>DocuWare (hors invest. et ristournes)</th><th>Part retrouvée dans DocuWare</th><th>Non retrouvé</th></tr></thead><tbody>';
+    rows.forEach(function(r){ var dw=cbSum(r.m,[0,10]), c=r.ext.real; h+='<tr><td><b>'+(CBL[r.n]||r.n)+'</b></td><td>'+E(c)+'</td><td>'+E(r.ext.bud)+'</td><td>'+E(r.ext.n1)+'</td><td>'+pp(r.ext.n1?100*(c-r.ext.n1)/r.ext.n1:null)+'</td><td>'+E(dw)+'</td><td>'+(c?Math.round(1000*dw/c)/10:0).toLocaleString('fr-FR')+' %</td><td>'+E(c-dw)+'</td></tr>'; });
+    h+='</tbody></table></div>';
+    h+='<div style="font-weight:700;margin:12px 0 4px">Évolution mensuelle des factures DocuWare (cumul depuis octobre)</div><div class="c-sc"><table class="c-tbl"><thead><tr><th>Magasin</th>'+M.map(function(x){ return '<th>'+x+'</th>'; }).join('')+'<th>Compta fin août</th></tr></thead><tbody>';
+    rows.forEach(function(r){ var c=0; h+='<tr><td><b>'+(CBL[r.n]||r.n)+'</b></td>'+M.map(function(x,i){ c+=r.m[i]; return '<td>'+E(c)+'</td>'; }).join('')+'<td><b>'+E(r.ext.real)+'</b></td></tr>'; });
+    h+='</tbody></table></div><div class="g-lecture" style="margin-top:8px">Les factures DocuWare ne couvrent pas tout le poste « charges externes » de la compta (provisions, factures non parvenues, régularisations, loyers hors DocuWare). L\'écart « non retrouvé » doit rester stable d\'un mois à l\'autre : s\'il grandit, des factures sont en retard dans DocuWare ou la compta a passé des écritures de régularisation. La situation de septembre complétera la courbe.</div>';
+    return h; }
+  window.__fgPage=function(box,ents,grp,repaint){
     var sub=window.__fgSub;
     if(sub==='carb'){ box.innerHTML=fgBack()+'<h3 style="margin:6px 0">⛽ Carburant</h3><div id="cbbox"></div>'; box.querySelector('.fgback').onclick=function(){ window.__fgSub=null; window.__fgPage(box,ents,grp,repaint); }; cbMount(box.querySelector('#cbbox'),ents,grp); return; }
     if((sub==='acl'||sub==='excl')&&grp){ fgAcl(box,ents,function(){ window.__fgSub=null; window.__fgPage(box,ents,grp,repaint); },sub); return; }
@@ -1263,6 +1276,7 @@ window.__fgPage=function(box,ents,grp,repaint){
     h+=bub('⛽','Carburant',live?E(ct):'—',live?'net sur 12 mois (fichier comptable)':'données en attente','carb');
     ids.forEach(function(p){ h+=bub(FGICO[p]||'•',p,E(fgT(A[p].tot)),fgN(A[p].nm)+' factures · '+fgPL(fgR()),p); });
     h+='</div>';
+    h+=fgCompta(ents);
     var ex=Object.keys(A).filter(function(p){ return !FGDIR[p]; }).sort(function(a,b){ return Math.abs(fgT(A[b].tot))-Math.abs(fgT(A[a].tot)); });
     if(ex.length) h+='<div class="g-lecture" style="margin-top:14px"><b>Hors périmètre du directeur, non affichés :</b> '+ex.map(function(p){ return (p==='A classer'?'à classer':p)+' '+E(fgT(A[p].tot)); }).join(' · ')+'.</div>';
     if(!has) h+='<div class="g-nodata" style="margin-top:14px"><b>Données en attente</b> : factures de frais généraux pour ce magasin.</div>';
@@ -2025,7 +2039,7 @@ function demarrerGestion(G){
   window.demarrerApp=function(D){ window.__DATA=D; PRIV=D.PRIV||{}; window.__MAIL_TOKEN=((D.CONFIG&&D.CONFIG.mail)||''); window.__WRITE_TOKEN=((D.CONFIG&&D.CONFIG.write)||''); window.__CONTACTS={}; window.__SYNC_URL=(D.CONFIG||{}).sync||''; _t(D); try{ demarrerGestion(D.GESTION); }catch(e){ console.error(e); } try{ pendingBubble(D); }catch(e){} try{ autoLock(); }catch(e){} try{ demarrerVisite({}); demarrerCompta(); }catch(e){ console.error(e); } if(window.__navInit) window.__navInit(); };
 })();
 </script>
-<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 13/10 17:40 · ↻</div>
+<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 14/10 10:50 · ↻</div>
 <script>(function(){var t=document.getElementById('verTag'),B=document.querySelector('meta[name=build]');var go=function(){try{sessionStorage.setItem('keepTab',location.hash);}catch(e){} location.replace(location.pathname+'?r='+Date.now()+location.hash);};
 t.onclick=go; window.addEventListener('pageshow',function(e){ if(e.persisted) location.reload(); });
 var chk=function(){ if(!B||location.protocol==='file:') return; fetch(location.pathname+'?c='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(x){ var m=x.match(/<meta name="build" content="(\d+)"/); if(m&&m[1]!==B.content){ t.textContent='⚠ Nouvelle version : touche ici'; t.style.cssText+=';color:#fff;background:#b21f2d;border-color:#b21f2d'; } }).catch(function(){}); };
