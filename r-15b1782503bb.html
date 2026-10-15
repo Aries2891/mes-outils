@@ -292,7 +292,7 @@
   /* ===== Menu latéral + lisibilité mobile ===== */
   #storebar,#topnav{display:none!important}
   .v-tabs [data-ct=fg],.v-tabs [data-gt=fg]{display:none!important}
-  #appbar{display:flex;align-items:center;gap:10px;background:#0c1b2a;color:#fff;padding:8px 12px;border-bottom:3px solid #1d5fa8}
+  #appbar{display:flex;align-items:center;gap:10px;background:#0c1b2a;color:#fff;padding:8px 12px;border-bottom:3px solid #1d5fa8;position:sticky;top:0;z-index:9000;box-shadow:0 3px 12px rgba(0,0,0,.28)}
   #topwrap[data-st=Waldighoffen] #appbar{border-bottom-color:#1d5fa8} #topwrap[data-st=Hesingue] #appbar{border-bottom-color:#1e7a34} #topwrap[data-st=Sierentz] #appbar{border-bottom-color:#e0a900} #topwrap[data-st=Mulhouse] #appbar{border-bottom-color:#7b3fa0} #topwrap[data-st=Creation] #appbar{border-bottom-color:#8a5a2b} #topwrap[data-st=GROUPE] #appbar{border-bottom-color:#b21f2d}
   #appbar .mbtn{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;border:1.5px solid #fff;background:transparent;color:#fff;border-radius:10px;padding:8px 14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;min-height:40px}
   #appbar .mlbl{flex:1 1 auto;min-width:0;font-weight:700;font-size:14.5px;line-height:1.2;overflow:hidden}
@@ -311,7 +311,7 @@
   #drw .it small{font-weight:600;opacity:.7;margin-left:4px}
   #drw .sb{margin:0 0 4px 22px;border-left:2px solid #d9e0e7} #drw .sb .it{font-size:14.5px;min-height:42px;padding:8px 12px} #drw .sb .sb .it{font-size:14px;font-weight:600}
   @media (max-width:720px){
-    body{overflow-x:hidden}
+    body{overflow-x:clip}
     .c-tbl td,.c-tbl th{white-space:nowrap;padding:6px 7px}
     .c-tbl td:first-child,.c-tbl th:first-child{position:sticky;left:0;z-index:1;white-space:normal;min-width:112px;max-width:170px;background:#fff;box-shadow:2px 0 0 var(--line)}
     .c-tbl th:first-child{background:#eef2f6} .c-tbl tr[style*="background"] td:first-child{background:#eef1f5}
@@ -359,7 +359,7 @@
   }
 
   /* v5 : plus aucun débordement horizontal sur téléphone */
-  html,body{overflow-x:hidden;max-width:100%}
+  html,body{overflow-x:clip;max-width:100%}
   @media(max-width:640px){
     .c-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important} .c-kpi{min-width:0;overflow-wrap:anywhere}
     .c-kpi .v{font-size:17px!important;white-space:normal;word-break:break-word} .c-kpi .l,.c-kpi .kt,.c-kpi .kb{min-width:0}
@@ -1457,7 +1457,7 @@ function fgCompta(ents){ var rows=[], per='';
             +ln('Charges externes',(R.ext&&R.ext.n1!=null)?arr(R.ext.real-R.ext.n1)+SE(R.ext.real-R.ext.n1):'—',cls((R.ext&&R.ext.n1!=null)?R.ext.real-R.ext.n1:null,true))
             +ln('Charges externes (% du CA)',pt(dX),cls(dX,true))
             +'</div>'; }).join('');
-        return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;margin-top:12px">'+cards+'</div><div class="sub" style="margin-top:12px;color:#5b6b7a;font-size:13.5px">Écarts par rapport à l\'exercice précédent (N-1) : <span class="g-up">▲ vert</span> = mieux que l\'an dernier (pour les charges et la masse salariale, une baisse est en vert), <span class="g-dn">▼ rouge</span> = moins bien que l\'an dernier.</div>'; })();
+        return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:12px">'+cards+'</div><div class="sub" style="margin-top:12px;color:#5b6b7a;font-size:13.5px">Écarts par rapport à l\'exercice précédent (N-1) : <span class="g-up">▲ vert</span> = mieux que l\'an dernier (pour les charges et la masse salariale, une baisse est en vert), <span class="g-dn">▼ rouge</span> = moins bien que l\'an dernier.</div>'; })();
       var gt=window.__gt||'syn', FGX=window.__fgx();
       function pg(){ var lock=[]; var C0=null, PR=''; Object.keys(PRIV).forEach(function(k){ var g=GU(k); if(!C0&&g&&g.COMPTA&&g.COMPTA.periode) C0=g.COMPTA; }); if(C0){ var MN={janvier:[31,'01'],février:[28,'02'],mars:[31,'03'],avril:[30,'04'],mai:[31,'05'],juin:[30,'06'],juillet:[31,'07'],août:[31,'08'],septembre:[30,'09'],octobre:[31,'10'],novembre:[30,'11'],décembre:[31,'12']}, mm=/(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s+(\d{4})/i.exec(C0.periode||''), dd=String(C0.exercice||'').split('→'); if(mm){ var q=MN[mm[1].toLowerCase()], yy=+mm[2], d=q[0]; if(q[1]==='02'&&((yy%4===0&&yy%100!==0)||yy%400===0)) d=29; PR=(dd[0]||'01/10/2025').trim()+' → '+d+'/'+q[1]+'/'+yy; } else PR=C0.exercice; } root.innerHTML='<div class="c-wrap"><div style="text-align:center;margin:6px 0 10px"><h2 style="margin:0 0 8px">Compte de résultat · Cumul exercice</h2>'+(C0?'<span style="display:inline-block;padding:10px 30px;border-radius:999px;background:#12263a;color:#fff;font-weight:800;font-size:clamp(18px,5.5vw,28px);letter-spacing:.3px;white-space:nowrap">'+PR+'</span>':'')+'</div>'+(C0?'<div class="sub" style="color:#5b6b7a;font-size:13px;text-align:center;margin:0 0 8px">Groupe · situation arrêtée '+C0.periode+' ('+C0.mois+' mois) · exercice complet '+C0.exercice+'</div>':'<div class="sub" style="color:#5b6b7a;font-size:13px">Groupe</div>')+'<div class="v-tabs c-tabs"><button type="button" data-gt="syn" class="'+(gt==='syn'?'on':'')+'">Synthèse</button><button type="button" data-gt="fg" class="'+(gt==='fg'?'on':'')+'">Frais généraux</button></div>'+(gt==='syn'?gsyn:gt==='fg'?'<div id="fgbox"></div>':(lock.length?'<div class="sub" style="margin:6px 0;color:#5b6b7a">Magasins verrouillés, non comptés : '+lock.map(function(k){ return CBL[k]||k; }).join(', ')+'.</div>':'')+'<div id="cbbox"></div>')+'</div>';
         root.querySelectorAll('.c-tabs button').forEach(function(b){ b.onclick=function(){ if(b.dataset.gt==='fg') window.__fgSub=null; gt=window.__gt=b.dataset.gt; pg(); }; });
@@ -2241,7 +2241,7 @@ function demarrerGestion(G){
   window.demarrerApp=function(D){ window.__DATA=D; setTimeout(function(){ try{ if(window.__bgRefresh) window.__bgRefresh(); }catch(e){} },2500); PRIV=D.PRIV||{}; window.__MAIL_TOKEN=((D.CONFIG&&D.CONFIG.mail)||''); window.__WRITE_TOKEN=((D.CONFIG&&D.CONFIG.write)||''); window.__CONTACTS={}; window.__SYNC_URL=(D.CONFIG||{}).sync||''; _t(D); try{ demarrerGestion(D.GESTION); }catch(e){ console.error(e); } try{ pendingBubble(D); }catch(e){} try{ autoLock(); }catch(e){} try{ demarrerVisite({}); demarrerCompta(); }catch(e){ console.error(e); } if(window.__navInit) window.__navInit(); };
 })();
 </script>
-<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 15/10 16:20 · ↻</div>
+<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 15/10 16:30 · ↻</div>
 <script>(function(){var t=document.getElementById('verTag'),B=document.querySelector('meta[name=build]');var go=function(){try{sessionStorage.setItem('keepTab',location.hash);}catch(e){} location.replace(location.pathname+'?r='+Date.now()+location.hash);};
 t.onclick=go; window.addEventListener('pageshow',function(e){ if(e.persisted) location.reload(); });
 var chk=function(){ if(!B||location.protocol==='file:') return; fetch(location.pathname+'?c='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(x){ var m=x.match(/<meta name="build" content="(\d+)"/); if(m&&m[1]!==B.content){ t.textContent='⚠ Nouvelle version : touche ici'; t.style.cssText+=';color:#fff;background:#b21f2d;border-color:#b21f2d'; } }).catch(function(){}); };
