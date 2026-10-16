@@ -1723,8 +1723,9 @@ function demarrerVisite(V){
   function pfBind(m,o){
     root.querySelectorAll('.pfimg').forEach(function(im){ var id=im.dataset.id, ck=m+'|'+id; im.onclick=function(){ if(im.src) pfZoom(im.src); };
       if(PHC[ck]){ im.src=PHC[ck]; return; } im.style.background='#e6ebf0'; pfGet(m,id).then(function(u){ if(u) im.src=u; else im.alt='Photo en attente de synchronisation'; }).catch(function(){ im.alt='Photo indisponible (hors connexion)'; }); });
-    function pfUp(id,file){ if(!file||!/^image\//.test(file.type||'image/')) return; setSt('Envoi de la photo…');
-      pfShrink(file,function(u){ if(!u){ setSt('Photo trop lourde, réessaie',1); return; } pfPut(m,id,u).then(function(){ PHC[m+'|'+id]=u; o.pf[id]={t:Date.now()}; dirty[m]=true; save(m,o); drawV(m); syncNow(m); }).catch(function(e){ setSt((e&&e.message==='refus')?'Le script Google a refusé la photo'+(e.det?' : '+e.det:' (taille ou jeton)'):(e&&e.message==='reponse')?'Réponse inattendue du script Google : photo non confirmée':'Photo non envoyée : réseau indisponible, réessaie',1); }); }); }
+    function pfFail(t){ setSt(t,1); try{ alert('Photo non envoyée.\n\n'+t); }catch(e){} }
+    function pfUp(id,file){ if(!file) return; setSt('Envoi de la photo…');
+      pfShrink(file,function(u){ if(!u){ pfFail('Image illisible ou trop lourde (essaie une photo JPG ou PNG).'); return; } pfPut(m,id,u).then(function(){ PHC[m+'|'+id]=u; o.pf[id]={t:Date.now()}; dirty[m]=true; save(m,o); drawV(m); syncNow(m); }).catch(function(e){ pfFail((e&&e.message==='refus')?'Le script Google a refusé la photo'+(e.det?' : '+e.det:' (taille ou jeton)'):(e&&e.message==='reponse')?'Réponse inattendue du script Google : photo non confirmée.':(e&&e.message==='cle')?'Magasin non déverrouillé : actualise la page.':'Réseau indisponible ou accès refusé ('+((e&&e.message)||'erreur')+').'); }); }); }
     window.__pfUp=function(id,file){ pfUp(id,file); };
     root.querySelectorAll('.pffile').forEach(function(f){ f.onchange=function(){ pfUp(f.dataset.id,f.files[0]); }; });
     root.querySelectorAll('.v-act').forEach(function(card){ var bx=card.querySelector('.pfbox'); if(!bx||!bx.querySelector('.pffile')) return; var id=bx.dataset.id;
@@ -2300,7 +2301,7 @@ function demarrerGestion(G){
   window.demarrerApp=function(D){ window.__DATA=D; setTimeout(function(){ try{ if(window.__bgRefresh) window.__bgRefresh(); }catch(e){} },2500); PRIV=D.PRIV||{}; window.__MAIL_TOKEN=((D.CONFIG&&D.CONFIG.mail)||''); window.__WRITE_TOKEN=((D.CONFIG&&D.CONFIG.write)||''); window.__CONTACTS={}; window.__SYNC_URL=(D.CONFIG||{}).sync||''; _t(D); try{ demarrerGestion(D.GESTION); }catch(e){ console.error(e); } try{ pendingBubble(D); }catch(e){} try{ autoLock(); }catch(e){} try{ demarrerVisite({}); demarrerCompta(); }catch(e){ console.error(e); } if(window.__navInit) window.__navInit(); };
 })();
 </script>
-<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 16/10 10:05 · ↻</div>
+<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 16/10 10:15 · ↻</div>
 <script>(function(){var t=document.getElementById('verTag'),B=document.querySelector('meta[name=build]');var go=function(){try{sessionStorage.setItem('keepTab',location.hash);}catch(e){} location.replace(location.pathname+'?r='+Date.now()+location.hash);};
 t.onclick=go; window.addEventListener('pageshow',function(e){ if(e.persisted) location.reload(); });
 var chk=function(){ if(!B||location.protocol==='file:') return; fetch(location.pathname+'?c='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(x){ var m=x.match(/<meta name="build" content="(\d+)"/); if(m&&m[1]!==B.content){ t.textContent='⚠ Nouvelle version : touche ici'; t.style.cssText+=';color:#fff;background:#b21f2d;border-color:#b21f2d'; } }).catch(function(){}); };
