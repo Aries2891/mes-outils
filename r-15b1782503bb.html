@@ -1519,7 +1519,7 @@ function demarrerVisite(V){
     try{
       var r=await fetch(url+'?k='+encodeURIComponent('visite_'+m)+'&_='+Date.now()); var tx=await r.text(), j; try{ j=JSON.parse(tx); }catch(e2){ throw new Error('acces'); }
       var local=load(m), merged=local;
-      if(j.v){ try{ merged=merge(local,await decS(m,j.v)); }catch(e){ merged=local; dirty[m]=true; } }
+      if(j.v){ try{ var rem=await decS(m,j.v); merged=merge(local,rem); if(JSON.stringify(merge(rem,{}))!==JSON.stringify(merged)) dirty[m]=true; }catch(e){ merged=local; dirty[m]=true; } }
       var changed=JSON.stringify(merged)!==JSON.stringify(local); save(m,merged);
       if(dirty[m]||!j.v||changed&&false){ var pr=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({k:'visite_'+m,v:await encS(m,merged),w:window.__WRITE_TOKEN||''})}); var rj=null; try{ rj=JSON.parse(await pr.text()); }catch(e3){} if(rj&&rj.ok===false) throw new Error('refus'); dirty[m]=false; try{ await pushResume(m,merged); }catch(e4){} }
       setSt('Synchronisé à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
@@ -2302,7 +2302,7 @@ function demarrerGestion(G){
   window.demarrerApp=function(D){ window.__DATA=D; setTimeout(function(){ try{ if(window.__bgRefresh) window.__bgRefresh(); }catch(e){} },2500); PRIV=D.PRIV||{}; window.__MAIL_TOKEN=((D.CONFIG&&D.CONFIG.mail)||''); window.__WRITE_TOKEN=((D.CONFIG&&D.CONFIG.write)||''); window.__CONTACTS={}; window.__SYNC_URL=(D.CONFIG||{}).sync||''; _t(D); try{ demarrerGestion(D.GESTION); }catch(e){ console.error(e); } try{ pendingBubble(D); }catch(e){} try{ autoLock(); }catch(e){} try{ demarrerVisite({}); demarrerCompta(); }catch(e){ console.error(e); } if(window.__navInit) window.__navInit(); };
 })();
 </script>
-<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 16/10 10:45 · ↻</div>
+<div id="verTag" style="position:fixed;left:8px;bottom:6px;z-index:2147483000;font:600 11px Arial,sans-serif;color:#5b6b7a;background:rgba(255,255,255,.88);border:1px solid #cfd8e3;border-radius:10px;padding:3px 8px;cursor:pointer">v 16/10 10:55 · ↻</div>
 <script>(function(){var t=document.getElementById('verTag'),B=document.querySelector('meta[name=build]');var go=function(){try{sessionStorage.setItem('keepTab',location.hash);}catch(e){} location.replace(location.pathname+'?r='+Date.now()+location.hash);};
 t.onclick=go; window.addEventListener('pageshow',function(e){ if(e.persisted) location.reload(); });
 var chk=function(){ if(!B||location.protocol==='file:') return; fetch(location.pathname+'?c='+Date.now(),{cache:'no-store'}).then(function(r){return r.text();}).then(function(x){ var m=x.match(/<meta name="build" content="(\d+)"/); if(m&&m[1]!==B.content){ t.textContent='⚠ Nouvelle version : touche ici'; t.style.cssText+=';color:#fff;background:#b21f2d;border-color:#b21f2d'; } }).catch(function(){}); };
